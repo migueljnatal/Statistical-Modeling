@@ -1,0 +1,391 @@
+---
+title:  "Modelagem Estatística - Lista 1"
+subtitle: "Mestrado PPGEst UFRGS"
+author: "Miguel Jandrey Natal"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preparando o dataset:
+
+Instalando o pacote MPV para e preparando o dataset para os exs do Montgomery:
+
+```{r}
+# install.packages("MPV")
+library(MPV)
+
+data = table.b3
+
+class(data) # verificando se era data frame 
+
+```
+
+# Exercício 1:
+
+## a)
+
+
+```{r}
+reg1 = lm(data$y ~ data$x1)
+
+summary(reg1)
+```
+
+## b)
+
+```{r}
+anova(reg1)
+```
+
+## c) R² = 0.772 = 77.2% 
+
+```{r}
+summary(reg1) # basta olhar o R² no output da função summary
+```
+
+## d)
+
+```{r}
+Y_hat_275 = reg1$coefficients[1] + reg1$coefficients[2]*275 
+
+Y_hat_275 # E(Y/X=275)
+
+n = length(data$x1)
+
+Sxx = sum((data$x1 - mean(data$x1))^2)
+SQR = sum((data$y - mean(data$y))^2) + 0.04743*sum((data$y - mean(data$y))*(data$x1 - mean(data$x1))) 
+MSres = SQR/(n-2)
+
+IC_inf = Y_hat_275 - qt(0.975,(n-2))*sqrt(MSres*((1/n) + (275-mean(data$x1))^2/Sxx))
+IC_sup = Y_hat_275 + qt(0.975,(n-2))*sqrt(MSres*((1/n) + (275-mean(data$x1))^2/Sxx))
+
+
+c(IC_inf , IC_sup ) # IC para a estimativa média de Y, dado X = 275
+
+
+```
+
+## e)
+```{r}
+Y_hat_275 # estimativa pontual
+
+IC_inf_2 = Y_hat_275 - qt(0.975,(n-2))*sqrt(MSres*(1 + (1/n) + (275-mean(data$x1))^2/Sxx))
+IC_sup_2 = Y_hat_275 + qt(0.975,(n-2))*sqrt(MSres*(1 + (1/n) + (275-mean(data$x1))^2/Sxx))
+
+
+c(IC_inf_2 , IC_sup_2 ) # IC para a estimativa pontual de Y, dado X = 275
+
+```
+
+## f)  O segundo intervalo é mais largo. Matematica/sintaticamente, isso ocorre porque multiplicamos MSres por (1 + 1/n ...). Estatisticamente - ou tem termos "semânticos" - isso ocorre porque o primeiro intervalo é uma estimativa intervalar para a média de Y, enquanto o segundo intervalo é uma estimativa intervalar para  um valor predito de Y. Em outras palavras, o primeiro é um intervalo de confiança para a média, ao passo que o segundo é um intervalo de predição. Naturalmente, o intervalo de predição terá uma amplitude maior, pois sua construção depende do erro do modelo ajustado e da observação futura. 
+
+# Exercício 2: 
+```{r}
+reg2 =  lm(data$y ~ data$x10) 
+
+anova(reg2)
+
+summary(reg2) # R² = 0.7446 = 74.46%
+
+
+```
+
+## As duas variáveis ajustam-se de forma semelhante ao modelo. Não parece haver uma variável melhor e outra pior para ajustar uma regressão linear simples. 
+
+# Exercício 3: 
+
+## a) , b) & c)
+```{r}
+data2 = table.b4
+
+reg3 = lm(data2$y ~ data2$x1)
+
+summary(reg3) # O modelo é significativo, pois o p-valor da F-stat é menor que 0.05. R² = 76.3%
+
+```
+## d)
+
+```{r}
+Sxx = sum((data2$x1 - mean(data2$x1))^2)
+SQR = sum((data2$y - mean(data2$y))^2) + 0.2946*sum((data2$y - mean(data2$y))*(data2$x1 - mean(data2$x1))) 
+MSres = SQR/(n-2)
+
+IC_inf = reg3$coefficients[2] - qt(0.975,(n-2))*sqrt(MSres*((1/n) + (275-mean(data$x1))^2/Sxx))
+IC_sup = reg3$coefficients[2] + qt(0.975,(n-2))*sqrt(MSres*((1/n) + (275-mean(data$x1))^2/Sxx))
+
+
+c(IC_inf , IC_sup ) 
+
+```
+
+# Exercício 5: 
+
+## a), b) & c)
+
+```{r}
+library(MPV)
+attach(p2.7)
+p2.7
+
+reg5 = lm(p2.7$purity ~ p2.7$hydro)
+
+summary(reg5) # responde (b) pois beta_1 é significativo; c) R² = 38.91%
+
+```
+
+## d)
+```{r}
+n=length(purity)
+sxx=sum((hydro-mean(hydro))^2)
+ssres=sum((purity-mean(purity))^2)-11.80*sum((purity-mean(purity))*(hydro-mean(hydro))) 
+msres=ssres/(n-2)
+
+IC95inf=reg5$coefficients[2]-qt(0.975,(n-2))*sqrt(msres/sxx) 
+IC95sup=reg5$coefficients[2]+qt(0.975,(n-2))*sqrt(msres/sxx) 
+
+IC_slope =c(IC95inf,IC95sup) 
+
+IC_slope
+
+
+```
+
+## e)
+
+```{r}
+Y_hat_5=reg5$coefficients[1]+reg5$coefficients[2]*1.00
+
+ICinf95_2=Y_hat_5-qt(0.975,(n-2))*sqrt(msres*((1/n)+(1-mean(hydro))^2/sxx))
+ICsup95_2=Y_hat_5+qt(0.975,(n-2))*sqrt(msres*((1/n)+(1-mean(hydro))^2/sxx))
+
+
+
+IC_hydro_1 = c(ICinf95_2,ICsup95_2) 
+
+IC_hydro_1 #estimativa intervalar da pureza da agua quando o percentual de hidrocarbo é 1%
+
+```
+
+
+# Exercício 6: 
+
+
+```{r}
+attach(p2.10)
+p2.10
+
+reg6 = lm(weight~sysbp)
+summary(reg6) # intercepto nao significativo
+anova(reg6) # MSres = 6151.2/24 = 256.3
+```
+
+# Exercício 7: 
+```{r}
+attach(p2.10) 
+p2.10 
+
+reg7=lm(weight~sysbp)
+summary(reg7)     # intercepto nao significativo
+anova(reg7)       # MSres = 6151.2/24 = 256.3
+
+#testando modelo sem intercepto
+
+reg7_2=lm(weight~sysbp-1)
+summary(reg7_2)
+anova(reg7_2) # MSres = 6286/25 = 251.44
+
+# foi significativo e MSres foi menor
+```
+
+# Exercício 8: 
+
+```{r}
+attach(p2.16) 
+```
+
+## a)
+```{r}
+plot(volume,pressure)
+```
+
+# b)
+```{r}
+modelo=lm(volume~pressure)
+summary(modelo)
+# y = 1.239e+02+4.262e-01
+```
+
+# c)
+```{r}
+#modelo significativo: p-value: < 2.2e-16
+#R²=1 (ajuste perfeito)
+#a regressão linear simples ajusta perfeitamente os dados
+```
+
+# d)  IC 95% para beta_0 e beta_1
+```{r}
+# Para B_0
+anova(modelo)
+n=length(volume)
+sxx=sum((pressure-mean(pressure))^2)
+msres=0.5483871 #17/31
+
+IC95infB1=modelo$coefficients[2]-qt(0.975,(n-2))*sqrt(msres/sxx) 
+IC95supB1=modelo$coefficients[2]+qt(0.975,(n-2))*sqrt(msres/sxx) 
+
+IC95infB0=modelo$coefficients[1]-qt(0.975,(n-2))*sqrt(msres*((1/n)+(mean(pressure)^2/sxx)))
+IC95supB0=modelo$coefficients[1]+qt(0.975,(n-2))*sqrt(msres*((1/n)+(mean(pressure)^2/sxx)))
+
+IC95B1=c(IC95infB1,IC95supB1)
+IC95B0=c(IC95infB0,IC95supB0)
+
+IC95B0
+IC95B1
+
+ychapeu=matrix(0,length(volume))
+ICinf95x=matrix(0,length(volume))
+ICsup95x=matrix(0,length(volume))
+
+for(i in 1:length(ychapeu)){
+ychapeu[i]=modelo$coefficients[1]+modelo$coefficients[2]*pressure[i] 
+ICinf95x[i]=ychapeu[i]-qt(0.975,(n-2))*sqrt(msres*((1/n)+(1-mean(pressure))^2/sxx))
+ICsup95x[i]=ychapeu[i]+qt(0.975,(n-2))*sqrt(msres*((1/n)+(1-mean(pressure))^2/sxx))
+}
+
+
+ychapeu
+plot(volume,pressure)
+lines(ICinf95x,pressure,col="red")
+lines(ICsup95x,pressure,col="blue")
+```
+
+# Exercício 9: 
+
+```{r}
+attach(p2.12) #y=usage, x=temp #invertido pois o consumo é regulado pela temperatura
+```
+
+## a)
+```{r}
+modelo=lm(usage~temp)
+```
+
+## b)
+```{r}
+summary(modelo)
+#regressao significativa: p-value: < 2.2e-16
+
+
+```
+
+## c)
+```{r}
+anova(modelo)
+n=length(usage)
+sxx=sum((temp-mean(temp))^2)
+msres=3.8 #38/10
+
+IC95infB1=modelo$coefficients[2]-qt(0.975,(n-2))*sqrt(msres/sxx) #ICB1inf=11.80103-2.101*3.485215
+IC95supB1=modelo$coefficients[2]+qt(0.975,(n-2))*sqrt(msres/sxx) #ICB1sup=11.80103+2.101*3.485215
+IC95B1=c(IC95infB1,IC95supB1)
+
+#Conclusao: aumentando a temperatura em 1 grau, o consumo aumentará entre 9.13 e 9.28 (IC95), ou seja, a afirmação da gerência é falsa.
+```
+
+## d)
+```{r}
+#Calcular um IC99 para y quando x=58 ambiente 58, o IC99 estimado para usage é (522.56,532.96)
+
+ychapeux58=modelo$coefficients[1]+modelo$coefficients[2]*58#estimativa pontual
+
+
+ICinf99x58=ychapeux58-qt(0.995,(n-2))*sqrt(msres*((1/n)+(1-mean(temp))^2/sxx))
+ICsup99x58=ychapeux58+qt(0.995,(n-2))*sqrt(msres*((1/n)+(1-mean(temp))^2/sxx))
+
+IC99x58=c(ICinf99x58,ICsup99x58)
+IC99x58 #para um novo mês com temperatura
+```
+
+# Exercício 10:
+
+## a)
+```{r}
+n=20 #tamanho de cada amostra
+x=seq(from=1,to=10.5,by=.5) #valores de x em cada amostra (fiz até 10.5 para serem 20, até 10 eram 19)
+nam=100 #número de amostras
+
+amostra=list()
+dados=list()
+e=list()
+reg=50+10*x
+
+for(i in 1:nam){
+  e[[i]]=rnorm(n,0,4)
+  amostra[[i]]=e[[i]]+reg
+  dados[[i]]=data.frame(amostra[[i]],x)
+  colnames(dados[[i]])=c("y","x")
+}
+
+reglin=list()
+b0=rep(0,nam)
+b1=rep(0,nam)
+for(i in 1:nam){
+attach(dados[[i]])
+reglin[[i]]=lm(y~x)
+b0[i]=reglin[[i]]$coefficients[1]
+b1[i]=reglin[[i]]$coefficients[2]
+}
+
+hist(b0)
+hist(b1)
+
+```
+## b)
+```{r}
+ychapeu=rep(0,nam)
+for(i in 1:nam){
+ychapeu[i]=b0[i]+b1[i]*50
+}
+hist(ychapeu)
+```
+## c)
+```{r}
+ssres=rep(0,nam)
+msres=rep(0,nam)
+sxx=rep(0,nam)
+ICB1inf=rep(0,nam)
+ICB1sup=rep(0,nam)
+
+for(i in 1:nam){
+ssres[i]=sum((dados[[i]][1]-apply(dados[[i]][1],2,mean))^2)-b1[i]*sum((dados[[i]][1]-apply(dados[[i]][1],2,mean))*(dados[[i]][2]-apply(dados[[i]][2],2,mean))) #402.54
+msres[i]=ssres[i]/(n-2)
+sxx[i]=sum((dados[[i]][2]-apply(dados[[i]][2],2,mean))^2)
+ICB1inf[i]=b1[i]-qt(0.975,(n-2))*sqrt(msres[i]/sxx[i]) 
+ICB1sup[i]=b1[i]+qt(0.975,(n-2))*sqrt(msres[i]/sxx[i])
+}
+
+a=ICB1inf<=10
+b=ICB1sup>=10
+c=a+b
+table(c)[2]/nam #95% dos IC's para B1 contém o verdadeiro valor de B1 (valor esperado teórico: 95%)
+```
+## d)
+```{r}
+ICinf95_x50=rep(0,nam)
+ICsup95_x50=rep(0,nam)
+
+for(i in 1:nam){
+ICinf95_x50[i]=ychapeu[i]-qt(0.975,(n-2))*sqrt(msres[i]*((1/n)+(50-apply(dados[[i]][2],2,mean))^2/sxx[i]))
+ICsup95_x50[i]=ychapeu[i]+qt(0.975,(n-2))*sqrt(msres[i]*((1/n)+(50-apply(dados[[i]][2],2,mean))^2/sxx[i]))
+}
+
+
+d=ICinf95_x50<=550
+e=ICsup95_x50>=550
+f=d+e
+table(f)[2]/nam #94% (valor esperado teórico 95%)
+```
+
