@@ -1,0 +1,293 @@
+---
+title:  "Modelagem Estatística - Lista 2"
+subtitle: "Mestrado PPGEst UFRGS"
+author: "Miguel Jandrey Natal"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# install.packages("MPV")
+library(MPV)
+attach(table.b3)
+```
+
+# Exercício 1:
+
+## a)
+```{r}
+reg1=lm(y~x1+x6)
+reg1=lm(y~x1)
+summary(reg1)
+```
+
+## b)
+```{r}
+an = anova(reg1)
+```
+
+## c)
+```{r}
+su = summary(reg1) # basta olhar R² e R²aju na função summary
+```
+
+## d)
+```{r}
+su=summary(reg1)
+an=anova(reg1)
+MSres=an$`Mean Sq`[3]    #MSres de reg1
+b1hat=su$coefficients[2] #beta1 estimado por reg1
+b0hat=su$coefficients[1]
+b6hat=su$coefficients[3]
+
+X=cbind(1,x1,x6) 
+n=length(x1)     
+
+c=(solve(t(X)%*%X)) # o valor para beta 1 = 4.149016*10^-6
+c11=c[2,2] 
+
+# IC para beta1 
+ICinf_b1=b1hat-qt(0.975,(n-3))*sqrt(MSres*c11)
+ICsup_b1=b1hat+qt(0.975,(n-3))*sqrt(MSres*c11)
+
+(IC95beta1=c(ICinf_b1,ICsup_b1))
+```
+## e)
+```{r}
+x10=275 
+x60=2
+x0=cbind(1,x10,x60)
+p=3 
+
+(yhat=b0hat+b1hat*x10+b6hat*x60) # substituindo x1=275 e x6=2
+
+MSres=an$`Mean Sq`[3]
+
+X=cbind(1,x1,x6) 
+h=(x0)%*%(solve(t(X)%*%X))%*%t(x0) # C=(x'x)^-1 vezes x0
+
+
+#IC_E(y/x0)  Intervalo de confiança para média
+ICinfy_x0=yhat-qt(0.975,(n-p))*sqrt(MSres*h)
+ICsupy_x0=yhat+qt(0.975,(n-p))*sqrt(MSres*h)
+
+(IC95=c(ICinfy_x0,ICsupy_x0))
+
+```
+
+## g)
+```{r}
+IPinfy_x0=yhat-qt(0.975,(n-p))*sqrt(MSres*(1+h))
+IPsupy_x0=yhat+qt(0.975,(n-p))*sqrt(MSres*(1+h))
+
+(IP95=c(IPinfy_x0,IPsupy_x0))
+
+```
+
+# Ex 2
+```{r}
+
+#IC para resposta média para ajuste com x1
+
+y275=33.72268-(0.04736*275)  #estimativa pontual
+n=length(x1)
+MSres=an$`Mean Sq`[2]
+Sxx = sum((x1-mean(x1))^2)
+
+ICinf275=y275-qt(0.975,(n-2))*sqrt(MSres*((1/n)+(275-mean(x1))^2/Sxx))
+ICsup275=y275+qt(0.975,(n-2))*sqrt(MSres*((1/n)+(275-mean(x1))^2/Sxx))
+
+(IC95=c(ICinf275,ICsup275))
+
+ICsup275-ICinf275 #comprimento do intervalo
+
+#  Intervalo de predição para ajuste com x1
+IPinfy_275=y275-qt(0.975,(n-2))*sqrt(MSres*(1+(1/n)+(275-mean(x1))^2/Sxx))
+IPsupy_275=y275+qt(0.975,(n-2))*sqrt(MSres*(1+(1/n)+(275-mean(x1))^2/Sxx))
+
+(IC95=c(IPinfy_275,IPsupy_275))
+
+IPsupy_275-IPinfy_275  #comprimento do intervalo
+
+
+
+c(ICsup275-ICinf275,IPsupy_275-IPinfy_275) # Comprimento do intervalo com x1
+
+
+
+```
+# Ex 3
+
+```{r}
+attach(table.b4)
+reg3=lm(table.b4)
+```
+
+# a) 
+```{r}
+summary(reg3)
+```
+
+#  b)
+```{r}
+an3=anova(reg3)
+SSreg=sum(an3$`Mean Sq`[1:9]) #SSreg
+MSreg=SSreg/9
+(ftest=MSreg/an3$`Mean Sq`[10])  #regressão significativa
+
+
+```
+#  c) Observando o summary temos que nenhuma variáveil é significativa. Modelo apresenta multicolinearidade.
+
+
+
+#  d) y: sale price of the house; x3: lot size; x4: living space (sq. ft *1000)
+
+```{r}
+#modelo completo:
+an3
+SSreg #SSreg do modelo completo
+
+#modelo restrito
+reg3R=lm(y~x1+x2+x5+x6+x7+x8+x9)
+(an3R=anova(reg3R))
+SSregR=sum(an3R$`Mean Sq`[1:7]) #SSreg do modelo restrito
+
+MSres=an3$`Mean Sq`[10]
+
+Ftest=((SSreg-SSregR)/2)/MSres
+1-pf(Ftest, df1=2, df2 = 15)  # não rejeita h0, logo não há contribuição de x3 e x4 dado que todos os regressores estão no modelo
+
+
+```
+#  e) Sim, nesse modelo a multicolinearidade é um problema.
+
+# Ex 4
+
+```{r}
+attach(table.b11)
+#plot(table.b11)
+ajuste4=lm(Quality~Clarity+Aroma+Body+Flavor+Oakiness)
+#  a)
+su4=summary(ajuste4)
+
+#  b)
+an4=anova(ajuste4)
+SSreg=sum(an4$`Mean Sq`[1:5])
+MSreg=SSreg/5
+
+testf=MSreg/an4$`Mean Sq`[6] #exste regressão
+
+#  c)
+
+
+# teste t para contribuição
+# h0: beta=0
+#  teste sob H0                  tzero=b1hat/sqrt(MSres*cjj)
+
+an4
+
+su4
+MSres=an4$`Mean Sq`[6]    #MSres do ajuste
+
+#betas estimado pelo ajuste
+b0hat=su4$coefficients[1]
+b1hat=su4$coefficients[2] 
+b2hat=su4$coefficients[3]
+b3hat=su4$coefficients[4]
+b4hat=su4$coefficients[5]
+b5hat=su4$coefficients[6]
+
+X=cbind(1,Clarity,Aroma,Body,Flavor,Oakiness)  
+n=length(Quality)    
+k= 5                  
+
+c=(solve(t(X)%*%X)) 
+c11=c[2,2]   
+c22=c[3,3]   
+c33=c[4,4]   
+c44=c[5,5]   
+c55=c[6,6]   
+
+
+# para Beta1
+
+(tzero1=b1hat/sqrt(MSres*c11))
+(P=1-(pt(tzero1,n-k-1)-pt(-tzero1,n-k-1)))
+
+# para Beta2
+
+(tzero2=b2hat/sqrt(MSres*c22))
+(P=1-(pt(tzero2,n-k-1)-pt(-tzero2,n-k-1)))
+
+# para Beta3
+
+(tzero3=b3hat/sqrt(MSres*c33))
+(P=1-(pt(tzero3,n-k-1)-pt(-tzero3,n-k-1)))
+
+# para Beta4
+
+(tzero4=b4hat/sqrt(MSres*c44))
+(P=1-(pt(tzero4,n-k-1)-pt(-tzero4,n-k-1)))
+
+# para Beta5
+
+(tzero5=b5hat/sqrt(MSres*c55))
+(P=1-(pt(tzero5,n-k-1)-pt(-tzero5,n-k-1)))
+
+#conclusão: temos que x4 e x5 contribuem significativamente para o modelo
+
+# d)
+ajuste4
+summary(ajuste4)
+ajuste4.1=lm(Quality~Aroma+Flavor)
+summary(ajuste4.1)
+
+#Observando R2 e R2 ajustado de ambos os modelos, podemos notar que tem pouca diferença entre os modelos
+
+#  e)IC 95% para o coeficiente de regressão para Flaavor para ambos  os modelos
+
+#Para o modelo Quality~aroma+flavor
+
+an4.1=anova(ajuste4.1)
+MSres4.1=an4.1$`Mean Sq`[3]    #MSres do ajuste
+su4.1=summary(ajuste4.1)
+
+#beta estimado pelo ajuste com Quality~aroma+flavor
+b0hat=su4.1$coefficients[1] 
+baromahat=su4.1$coefficients[2]
+bflavorhat=su4.1$coefficients[3]
+X=cbind(1,Aroma,Flavor)  
+n=length(Quality)     
+k= 2                  
+c=(solve(t(X)%*%X)) 
+c11=c[2,2]   
+c22=c[3,3]   
+
+
+# IC para betaFlavor do ajuste Quality~aroma+flavor
+ICinf_b2=bflavorhat-qt(0.975,(n-3))*sqrt(MSres4.1*c22)
+ICsup_b2=bflavorhat+qt(0.975,(n-3))*sqrt(MSres4.1*c22)
+
+(IC95betaFlavor=c(ICinf_b2,ICsup_b2))
+
+# Para o ajuste com Quality~Clarity+Aroma+Body+Flavor+Oakiness
+an4
+su4
+
+# IC para betaFlavor do ajuste Quality~Clarity+Aroma+Body+Flavor+Oakiness
+ICinf_flavor=b4hat-qt(0.975,(n-6))*sqrt(MSres*c44)
+ICsup_flavor=b4hat+qt(0.975,(n-6))*sqrt(MSres*c44)
+
+(IC95betaFlavor=c(ICinf_flavor,ICsup_flavor))
+```
+## Poranto, os dois intervalos são quase iguais
+##  Quality~aroma+flavor: [0.5803295 ; 1.7600034]
+##  Quality~Clarity+Aroma+Body+Flavor+Oakiness:  [0.5481168 ; 1.7885307]
+
+
+
