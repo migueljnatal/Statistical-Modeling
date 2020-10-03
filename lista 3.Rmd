@@ -1,0 +1,156 @@
+---
+title:  "Modelagem Estatística - Lista 3"
+subtitle: "Mestrado PPGEst UFRGS"
+author: "Miguel Jandrey Natal"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# install.packages("MPV")
+library(MPV)
+```
+
+# Ex 1
+```{r}
+attach(table.b2)
+```
+## a)
+```{r}
+reg1 = lm(y ~ x4, data=table.b2) 
+ajuste.stdres = rstandard(reg1)
+qqnorm(ajuste.stdres,  ylab="Standardized Residuals", xlab="Normal Scores") 
+qqline(ajuste.stdres)
+# Aparentemente não existe nenhum problema de normalidade
+
+```
+## b)
+```{r}
+plot(fitted(reg1),residuals(reg1))
+abline(h=0)
+# há pontos mais concentrados à direita, talvez isso indique  algum padrão.
+```
+
+# Ex 2
+```{r}
+attach(table.b3)
+table.b3
+```
+## a) Não parece haver problema com a premissa de normalidade.
+```{r}
+reg2 = lm(y ~ x1, data=table.b3) 
+ajuste.stdres = rstandard(reg2)
+qqnorm(ajuste.stdres,  ylab="Standardized Residuals", xlab="Normal Scores") 
+qqline(ajuste.stdres)
+```
+## b) 
+```{r}
+plot(fitted(reg2),residuals(reg2))
+abline(h=0)
+```
+## c)
+```{r}
+su = summary(reg2)
+an = anova(reg2)
+MSres=an$`Mean Sq`[2]
+yest=fitted(reg2)
+
+res=su$residuals   
+
+d=res/sqrt(MSres) 
+
+r=rstandard(reg2) 
+
+h=hat((table.b3[,-c(1,3:12)]), intercept = T)
+
+resp=res/(1-h)  
+
+t=rstudent(reg2) 
+
+resp^2
+
+(Residual=t(rbind(res, d, r, h, resp, t)))
+```
+
+# Ex 3
+
+```{r}
+attach(table.b4)
+table.b4
+```
+## a) Não aparenta
+```{r}
+reg3 = lm(y ~ ., data=table.b4) 
+ajuste.stdres = rstandard(reg3)
+qqnorm(ajuste.stdres,  ylab="Standardized Residuals", xlab="Normal Scores") 
+qqline(ajuste.stdres)
+```
+## b)
+```{r}
+plot(fitted(reg3),residuals(reg3))
+abline(h=0)
+```
+## C)
+```{r}
+su=summary(reg3)
+an=anova(reg3)
+MSres=an$`Mean Sq`[10]
+yest=fitted(reg3)
+
+res=su$residuals  
+
+d=res/sqrt(MSres) 
+
+r=rstandard(reg3) 
+
+h=hat((table.b4[,-1]), intercept = T)
+
+resp=res/(1-h) 
+
+t=rstudent(reg3) # PRESS student usando S²(i)
+
+resp^2
+
+(Residual=t(rbind(res, d, r, h, resp, t)))
+```
+
+# Ex 4
+
+```{r}
+attach(table.b3)
+reg_lista1=lm(y~x1)
+reg_lista2=lm(y~x1+x6)
+
+## FUNÇÃO QUE CALCULA A ESTATÍSTICA PRESS
+library(MPV) 
+PRESS(reg_lista1)
+PRESS(reg_lista2)
+# Pela estatística PRESS, o modelo da lista 2 está melhor ajustado do que o modelo da lista 1.
+
+```
+# Ex 5
+
+```{r}
+attach(table.b10)
+table.b10
+```
+
+## a)
+```{r}
+reg5 = lm(y ~ ., data=table.b10) 
+ajuste.stdres = rstandard(reg5)
+qqnorm(ajuste.stdres,  ylab="Standardized Residuals", xlab="Normal Scores") 
+qqline(ajuste.stdres)
+
+```
+
+## b)
+```{r}
+plot(fitted(reg5),residuals(reg5))
+abline(h=0)
+```
+
